@@ -1,0 +1,157 @@
+<html>
+
+<head>
+  <title>Expense Tracker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Expense Tracker</h1>
+    <form>
+
+      <div class="form-group">
+        <label>Tanggal :</label>
+        <input type="date" name="Tanggal" class="form-control" value="2020-01-01" required="">
+      </div>
+
+      <div class="form-group">
+        <label>Kategori :</label>
+        <input type="text" name="Kategori" class="form-control" value="Kategori" required="">
+      </div>
+
+      <div class="form-group">
+        <label>Detail :</label>
+        <input type="text" name="Detail" class="form-control" value="Detail" required="">
+      </div>
+
+      <div class="form-group">
+        <label>Total :</label>
+        <input type="number" name="Total" class="form-control" value="0" required="">
+      </div>
+
+      <button type="submit" class="btn btn-success get-btn" type="button" value="SAVE">SAVE</button>
+    </form>
+    <br />
+    <table class="table table-bordered data-table">
+      <thead>
+        <th>Tanggal</th>
+        <th>Kategori</th>
+        <th>Detail</th>
+        <th>Total</th>
+        <th>Key</th>
+        <th width="200px">Action</th>
+      </thead>
+      <tbody>
+
+      </tbody>
+    </table>
+
+  </div>
+
+  <script type="text/javascript">
+
+    $(window).on('load', function(){
+      proses('get', "")
+    });
+
+    $("")
+    $("form").submit(function (e) {
+      e.preventDefault();
+      var Tanggal = $("input[name='Tanggal']").val();
+      var Kategori = $("input[name='Kategori']").val();
+      var Detail = $("input[name='Detail']").val();
+      var Total = $("input[name='Total']").val();
+      var Key = $("input[name='Key']").val();
+      proses('post', Tanggal, Kategori, Detail, Total, Key)
+    });
+
+    function proses(type1, Tanggal, Kategori, Detail, Total, Key) {
+      event.preventDefault();
+      $.ajax({
+        url: 'http://127.0.0.1:3001/crud',
+        type: type1,
+        dataType: "json",
+        contentType: 'application/json',
+        data: JSON.stringify({
+          "Tanggal": Tanggal,
+          "Kategori": Kategori,
+          "Detail": Detail,
+          "Total": Total,
+          "_Id": Key
+        }),
+        success: function (result) {
+          $(".data-table tbody").empty();
+          result.forEach(function (o) {
+            $(".data-table tbody").append(
+              "<tr data-Tanggal='" + o.Tanggal +
+              "' data-Kategori='" + o.Kategori +
+              "' data-Detail='" + o.Detail +
+              "' data-Total='" + o.Total +
+              "' data-Key='" + o._id +
+              "'><td>" + o.Tanggal + "</td><td>" + o.Kategori + "</td><td>" + o.Detail + "</td><td>" + o.Total + "</td><td>" + o._id + "</td><td><button class='btn btn-info btn-xs btn-edit'>Edit</button><button class='btn btn-danger btn-xs btn-delete'> Delete</button></td></tr>1");
+          })
+        }
+      })
+    }
+
+    $("body").on("click", ".btn-delete", function (e) {
+      e.preventDefault();
+      var cells = $(this).closest("tr").children("td");
+      var Tanggal = cells.eq(0).text();
+      var Kategori = cells.eq(1).text();
+      var Detail = cells.eq(2).text();
+      var Total = cells.eq(3).text();
+      var Key = cells.eq(4).text();
+      proses('delete', Tanggal, Kategori, Detail, Total, Key)
+    });
+
+    $("body").on("click", ".btn-edit", function (e) {
+      e.preventDefault();
+      var cells = $(this).closest("tr").children("td");
+      var Tanggal = cells.eq(0).text();
+      var Kategori = cells.eq(1).text();
+      var Detail = cells.eq(2).text();
+      var Total = cells.eq(3).text();
+      var Key = cells.eq(4).text();
+
+      $(this).parents("tr").find("td:eq(0)").html('<input name="edit_Tanggal" value="' + Tanggal + '">');
+      $(this).parents("tr").find("td:eq(1)").html('<input name="edit_Kategori" value="' + Kategori + '">');
+      $(this).parents("tr").find("td:eq(2)").html('<input name="edit_Detail" value="' + Detail + '">');
+      $(this).parents("tr").find("td:eq(3)").html('<input name="edit_Total" value="' + Total + '">');
+      $(this).parents("tr").find("td:eq(4)").html('<input name="edit_Key" value="' + Key + '">');
+      $(this).parents("tr").find("td:eq(5)").prepend("<button class='btn btn-info btn-xs btn-update'>Update</button><button class='btn btn-warning btn-xs btn-cancel'>Cancel</button>")
+    }
+    );
+
+    $("body").on("click", ".btn-cancel", function (e) {
+      e.preventDefault();
+      proses('get', "")
+      $(this).parents("tr").find(".btn-edit").show();
+      $(this).parents("tr").find(".btn-update").remove();
+      $(this).parents("tr").find(".btn-cancel").remove();
+
+    });
+
+    $("body").on("click", ".btn-update", function (e) {
+      e.preventDefault();
+      var cells = $(this).closest("tr").children("td");
+      var Tanggal = $(this).parents("tr").find("input[name='edit_Tanggal']").val();
+      var Kategori = $(this).parents("tr").find("input[name='edit_Kategori']").val();
+      var Detail = $(this).parents("tr").find("input[name='edit_Detail']").val();
+      var Total = $(this).parents("tr").find("input[name='edit_Total']").val();
+      var Key = $(this).parents("tr").find("input[name='edit_Key']").val();
+
+      proses('put', Tanggal, Kategori, Detail, Total, Key)
+
+      $(this).parents("tr").find(".btn-edit").show();
+      $(this).parents("tr").find(".btn-cancel").remove();
+      $(this).parents("tr").find(".btn-update").remove();
+    });
+
+  </script>
+</body>
+
+</html>
